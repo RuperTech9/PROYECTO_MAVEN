@@ -1,0 +1,23 @@
+-- Creación de la Base de Datos
+CREATE DATABASE IF NOT EXISTS EmpleadosDB;
+
+-- Creación del usuario en MYSQL
+CREATE USER 'alejandro'@'%' IDENTIFIED BY 'J0selu1s100%';
+
+-- Asignar permisos al usuario creado en MYSQL
+GRANT ALL PRIVILEGES ON EmpleadosDB.* TO 'alejandro'@'%';
+FLUSH PRIVILEGES;
+
+
+USE EmpleadosDB;
+
+-- Creación de la Tabla Empleados
+CREATE TABLE Empleados (
+    codigo VARCHAR(15) PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellidos VARCHAR(100),
+    fechaNacimiento DATE,
+    fechaIngreso DATE,
+    puesto VARCHAR(50),
+    salario DOUBLE
+);
