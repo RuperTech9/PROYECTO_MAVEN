@@ -63,13 +63,11 @@ public class PRUEBAS {
     // CODIGO EMPLEADO
         System.out.println("Introduce el codigo del empleado: ");
         String codigo = sc.nextLine();
-    
     // NOMBRE Y APELLIDOS
         System.out.println("Introduce el nombre del empleado:");
         String nombre = sc.nextLine();
         System.out.println("Introduce los apellidos del empleado:");
         String apellidos = sc.nextLine();
-        
     // FECHA DE NACIMIENTO
         LocalDate fechaNacimiento = null; // Inicializo variable
         do {
@@ -83,7 +81,6 @@ public class PRUEBAS {
                 System.err.println("ERROR. Introduce el formato correcto DD/MM/YYYY.");
             } // FIN TRY-CATCH
         } while (fechaNacimiento == null); // FIN DO-WHILE
-        
     // FECHA DE INGRESO
         LocalDate fechaIngreso = null; // Inicializo variable
         do {
@@ -102,7 +99,6 @@ public class PRUEBAS {
                 System.err.println("ERROR. Introduce el formato correcto DD/MM/YYYY.");
             } // FIN TRY-CATCH
         } while (fechaIngreso == null); // FIN DO-WHILE
-        
     // PUESTO
         System.out.println("Introduce el puesto del empleado:");
         String puesto = sc.nextLine();
