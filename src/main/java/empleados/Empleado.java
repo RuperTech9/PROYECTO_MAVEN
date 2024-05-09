@@ -16,10 +16,10 @@ public class Empleado {
     private LocalDate fechaNacimiento;
     private LocalDate fechaIngreso;
     private String puesto;
-    private Double salario;
+    private double salario;
     
     // CONSTRUCTOR
-    public Empleado(String codigo, String nombre, String apellidos, LocalDate fechaNacimiento, LocalDate fechaIngreso, String puesto, Double salario) {
+    public Empleado(String codigo, String nombre, String apellidos, LocalDate fechaNacimiento, LocalDate fechaIngreso, String puesto, double salario) {
         this.codigo = codigo;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -48,7 +48,7 @@ public class Empleado {
     public String getPuesto() {
         return puesto;
     }
-    public Double getSalario() {
+    public double getSalario() {
         return salario;
     }
     
@@ -71,7 +71,7 @@ public class Empleado {
     public void setPuesto(String puesto) {
         this.puesto = puesto;
     }
-    public void setSalario(Double salario) {
+    public void setSalario(double salario) {
         this.salario = salario;
     }
     

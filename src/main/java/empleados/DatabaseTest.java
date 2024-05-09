@@ -15,7 +15,7 @@ public class DatabaseTest {
         String password = "J0selu1s100%";
         System.out.println("Conectando...\n");
 
-        try (Connection conexion = DriverManager.getConnection(url, user, password)) {
+        try (Connection con = DriverManager.getConnection(url, user, password)) {
             System.out.println("Conexión exitosa!");
         } catch (SQLException e) {
             System.out.println("Mensaje del error: " + e.getMessage());
