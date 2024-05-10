@@ -10,7 +10,7 @@ import java.sql.SQLException;
  */
 public class DatabaseTest {
     public static void main(String[] args) {
-        String url = "jdbc:mysql://192.168.0.27:3306/EmpleadosDB";
+        String url = "jdbc:mysql://192.168.80.152:3306/EmpleadosDB";
         String user = "alejandro";
         String password = "J0selu1s100%";
         System.out.println("Conectando...\n");
