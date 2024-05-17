@@ -83,7 +83,7 @@ public class Empleado {
         String fechaNacimientoFormatted = fechaNacimiento.format(formatter);
         String fechaIngresoFormatted = fechaIngreso.format(formatter);
         
-        return codigo +
+        return "CODIGO: " + codigo +
            "    NOMBRE: " + nombre + " " + apellidos +
            "    FECHA NACIMIENTO: " + fechaNacimientoFormatted +
            "    FECHA INGRESO: " + fechaIngresoFormatted +
