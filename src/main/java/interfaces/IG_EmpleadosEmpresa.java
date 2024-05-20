@@ -1,23 +1,22 @@
 
 package interfaces;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.List;
 
 /**
  *
- * @author alumno
+ * @author Ruper
  */
-public class Empresa extends javax.swing.JPanel {
-
+public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
+    private EmpleadosEmpresa empresa;
     /**
-     * Creates new form Empresa
+     * Creates new form IG_EmpleadosEmpresa
      */
-    public Empresa() {
+    public IG_EmpleadosEmpresa() {
+        empresa = new EmpleadosEmpresa();
+        empresa.cargarEmpleadosDB();
         initComponents();
     }
 
@@ -39,7 +38,9 @@ public class Empresa extends javax.swing.JPanel {
         bt_MostrarAntiguos = new javax.swing.JButton();
         bt_Salir = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        ta_Resultado = new javax.swing.JTextArea();
+        ta_Display = new javax.swing.JTextArea();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         bt_Añadir.setText("Añadir Empleado");
         bt_Añadir.addActionListener(new java.awt.event.ActionListener() {
@@ -97,39 +98,38 @@ public class Empresa extends javax.swing.JPanel {
             }
         });
 
-        ta_Resultado.setEditable(false);
-        ta_Resultado.setColumns(20);
-        ta_Resultado.setRows(5);
-        jScrollPane1.setViewportView(ta_Resultado);
+        ta_Display.setColumns(20);
+        ta_Display.setRows(5);
+        jScrollPane1.setViewportView(ta_Display);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(33, 33, 33)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap(37, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(bt_Añadir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(bt_Actualizar, javax.swing.GroupLayout.DEFAULT_SIZE, 184, Short.MAX_VALUE)
                             .addComponent(bt_Eliminar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(bt_Actualizar, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
+                            .addComponent(bt_Añadir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(bt_Buscar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(bt_MostrarAntiguos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(bt_GastoTotal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(bt_Ordenados, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(bt_GastoTotal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(bt_MostrarAntiguos, javax.swing.GroupLayout.DEFAULT_SIZE, 184, Short.MAX_VALUE)
                             .addComponent(bt_Salir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addGap(164, 164, 164))
+                .addContainerGap(37, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(82, 82, 82)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
+                .addGap(25, 25, 25)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bt_Añadir)
                     .addComponent(bt_Ordenados))
@@ -145,99 +145,118 @@ public class Empresa extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bt_Buscar)
                     .addComponent(bt_Salir))
-                .addGap(12, 12, 12))
+                .addGap(23, 23, 23))
         );
+
+        pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void bt_AñadirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_AñadirActionPerformed
-        String codigo = JOptionPane.showInputDialog("Introduce el código del empleado:");
-        String nombre = JOptionPane.showInputDialog("Introduce el nombre del empleado:");
-        String apellidos = JOptionPane.showInputDialog("Introduce los apellidos del empleado:");
-        LocalDate fechaNacimiento = obtenerFecha("Introduce la fecha de nacimiento del empleado (DD/MM/YYYY):");
-        LocalDate fechaIngreso = obtenerFecha("Introduce la fecha de ingreso del empleado (DD/MM/YYYY):");
-        String puesto = JOptionPane.showInputDialog("Introduce el puesto del empleado:");
-        double salario = Double.parseDouble(JOptionPane.showInputDialog("Introduce el salario del empleado:"));
-
-        EmpleadosEmpresa.añadirEmpleado(codigo, nombre, apellidos, fechaNacimiento, fechaIngreso, puesto, salario);
-        ta_Resultado.setText("Empleado añadido correctamente.");
+        empresa.añadirEmpleado();
+        mostrarDatos();
     }//GEN-LAST:event_bt_AñadirActionPerformed
 
     private void bt_EliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_EliminarActionPerformed
-        String codigo = JOptionPane.showInputDialog("Introduce el código del empleado a eliminar:");
-        EmpleadosEmpresa.eliminarEmpleado(codigo);
-        ta_Resultado.setText("Empleado eliminado correctamente.");
+       empresa.eliminarEmpleado();
+        mostrarDatos();
     }//GEN-LAST:event_bt_EliminarActionPerformed
 
     private void bt_ActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_ActualizarActionPerformed
-        String codigo = JOptionPane.showInputDialog("Introduce el código del empleado a actualizar:");
-        String nuevoPuesto = JOptionPane.showInputDialog("Introduce el nuevo puesto del empleado:");
-        double nuevoSalario = Double.parseDouble(JOptionPane.showInputDialog("Introduce el nuevo salario del empleado:"));
-        
-        EmpleadosEmpresa.actualizarEmpleadoDB(codigo, nuevoPuesto, nuevoSalario);
-        ta_Resultado.setText("Empleado actualizado correctamente.");
+        empresa.actualizarEmpleado();
+        mostrarDatos();
     }//GEN-LAST:event_bt_ActualizarActionPerformed
 
     private void bt_BuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_BuscarActionPerformed
-        String codigo = JOptionPane.showInputDialog("Introduce el código del empleado:");
-        Empleado empleado = EmpleadosEmpresa.buscarEmpleado(codigo);
-        
-        if (empleado != null) {
-            ta_Resultado.setText(empleado.toString());
-        } else {
-            ta_Resultado.setText("Empleado no encontrado.");
-        }
+        empresa.buscarEmpleado();
     }//GEN-LAST:event_bt_BuscarActionPerformed
 
     private void bt_OrdenadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_OrdenadosActionPerformed
-        String[] opciones = {"Por antigüedad", "Por salario", "Por apellido"};
-        int opcion = JOptionPane.showOptionDialog(null, "Seleccione el criterio de ordenación:", "Ordenar Empleados",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opciones, opciones[0]);
-        
-        switch (opcion) {
-            case 0:
-                EmpleadosEmpresa.ordenadosPorAntigüedad();
-                break;
-            case 1:
-                EmpleadosEmpresa.ordenadosPorSalario();
-                break;
-            case 2:
-                EmpleadosEmpresa.ordenadosPorApellido();
-                break;
-            default:
-                ta_Resultado.setText("No se seleccionó una opción válida.");
-                return;
-        }
-        
-        ta_Resultado.setText("Empleados ordenados correctamente.");
+        empresa.ordenadosPorAntigüedad();
+        mostrarDatos();
     }//GEN-LAST:event_bt_OrdenadosActionPerformed
 
     private void bt_GastoTotalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_GastoTotalActionPerformed
-        double gastoTotal = EmpleadosEmpresa.calcularGastoTotal();
-        ta_Resultado.setText("El gasto total en salarios de los empleados es: " + gastoTotal);
+        empresa.calcularGastoTotal();
+        mostrarGastoTotal();
     }//GEN-LAST:event_bt_GastoTotalActionPerformed
 
     private void bt_MostrarAntiguosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_MostrarAntiguosActionPerformed
-        EmpleadosEmpresa.mostrarEmpleadosAntiguos();
-        ta_Resultado.setText("Empleados antiguos mostrados correctamente.");
+        empresa.mostrarEmpleadosAntiguos();
+        mostrarEmpleadosAntiguos();
     }//GEN-LAST:event_bt_MostrarAntiguosActionPerformed
 
     private void bt_SalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_SalirActionPerformed
         System.exit(0);
     }//GEN-LAST:event_bt_SalirActionPerformed
     
-    private LocalDate obtenerFecha(String mensaje) {
-        LocalDate fecha = null;
-        do {
-            String strFecha = JOptionPane.showInputDialog(mensaje);
-            try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                fecha = LocalDate.parse(strFecha, formatter);
-                break;
-            } catch (DateTimeParseException e) {
-                JOptionPane.showMessageDialog(null, "ERROR. Introduce el formato correcto DD/MM/YYYY.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void mostrarDatos() {
+        ta_Display.setText(""); // Limpiar el área de texto
+        for (Empleado empleado : EmpleadosEmpresa.empleados) {
+            ta_Display.append(empleado.toString() + "\n");
+        }
+    }
+    
+    private void mostrarGastoTotal() {
+        ta_Display.setText(""); // Limpiar el área de texto
+        for (Empleado empleado : EmpleadosEmpresa.empleados) {
+            ta_Display.append(empleado.toString() + "\n");
+        }
+        double gastoTotal = empresa.calcularGastoTotal();
+        ta_Display.append("\nEl gasto total en salarios es: " + gastoTotal);
+    }
+    
+    private void mostrarEmpleadosAntiguos() {
+        ta_Display.setText(""); // Limpiar el área de texto
+        // Capturar la salida estándar
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        PrintStream old = System.out;
+        System.setOut(ps);
+
+        // Llamar al método que imprime en consola
+        empresa.mostrarEmpleadosAntiguos();
+
+        // Restaurar la salida estándar
+        System.out.flush();
+        System.setOut(old);
+
+        // Mostrar el resultado en el JTextArea
+        ta_Display.setText(baos.toString());
+    }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
             }
-        } while (fecha == null);
-        return fecha;
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new IG_EmpleadosEmpresa().setVisible(true);
+            }
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -250,6 +269,6 @@ public class Empresa extends javax.swing.JPanel {
     private javax.swing.JButton bt_Ordenados;
     private javax.swing.JButton bt_Salir;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea ta_Resultado;
+    private javax.swing.JTextArea ta_Display;
     // End of variables declaration//GEN-END:variables
 }

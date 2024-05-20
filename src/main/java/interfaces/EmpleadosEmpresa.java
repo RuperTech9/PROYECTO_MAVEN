@@ -9,6 +9,8 @@ import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.sql.*;
+import java.util.List;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -22,7 +24,7 @@ public class EmpleadosEmpresa {
     
     // METODOS JDBC
     private static Connection conectar() {
-        String url = "jdbc:mysql://192.168.80.152:3306/EmpleadosDB";
+        String url = "jdbc:mysql://192.168.0.27:3306/EmpleadosDB";
         String user = "alejandro";
         String password = "J0selu1s100%";
         try {
@@ -58,15 +60,13 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO para añadir un empleado.
-    private static void añadirEmpleado() {
+    public void añadirEmpleado() {
         // CODIGO EMPLEADO
         System.out.println("Introduce el codigo del empleado: ");
         String codigo = sc.nextLine();
         // NOMBRE Y APELLIDOS
-        System.out.println("Introduce el nombre del empleado:");
-        String nombre = sc.nextLine();
-        System.out.println("Introduce los apellidos del empleado:");
-        String apellidos = sc.nextLine();
+        String nombre = JOptionPane.showInputDialog("Introduce el nombre del empleado:");
+        String apellidos = JOptionPane.showInputDialog("Introduce los apellidos del empleado:");
         // FECHA DE NACIMIENTO
         LocalDate fechaNacimiento = obtenerFecha("Introduce la fecha de nacimiento del empleado (DD/MM/YYYY):");
         // FECHA DE INGRESO
@@ -84,7 +84,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO para guardar un empleado en la BBDD.
-    private static void guardarEmpleadoDB(Empleado empleado) {
+    public void guardarEmpleadoDB(Empleado empleado) {
         String sql = "INSERT INTO Empleados (codigo, nombre, apellidos, fechaNacimiento, fechaIngreso, puesto, salario) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
@@ -112,7 +112,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO que elimina un empleado por nombre y apellidos
-    private static void eliminarEmpleado() {
+    public void eliminarEmpleado() {
         System.out.println("Introduce el código del empleado a eliminar:");
         String codigo = sc.nextLine();
         
@@ -151,7 +151,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // Método para solicitar la actualización de un empleado
-    private static void actualizarEmpleado() {
+    public void actualizarEmpleado() {
         System.out.println("Introduce el código del empleado a actualizar:");
         String codigo = sc.nextLine();
         
@@ -173,7 +173,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // Método para actualizar un empleado en la base de datos
-    private static void actualizarEmpleadoDB(String codigo, String nuevoPuesto, double nuevoSalario) {
+    public void actualizarEmpleadoDB(String codigo, String nuevoPuesto, double nuevoSalario) {
         String sql = "UPDATE Empleados SET puesto = ?, salario = ? WHERE codigo = ?";
         Connection con = null;
         PreparedStatement ps = null;
@@ -205,7 +205,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO que busca un empleado por nombre y apellidos
-    private static void buscarEmpleado() {
+    public void buscarEmpleado() {
         System.out.println("Introduce el codigo del empleado:");
         String codigo = sc.nextLine();
         
@@ -243,7 +243,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO que busca un empleado por nombre y apellidos
-    private static void mostrarEmpleadosAntiguos() {
+    public void mostrarEmpleadosAntiguos() {
         String sql = "SELECT * FROM EmpleadosAntiguos";
         Connection con = null;
         PreparedStatement ps = null;
@@ -252,7 +252,7 @@ public class EmpleadosEmpresa {
             con = conectar();
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
-            System.out.println("\nLista de Empleados Antiguos:");
+            System.out.println("Lista de Empleados Antiguos:");
             while (rs.next()) {
                     Empleado empleado = new Empleado(
                     rs.getString("codigo"),
@@ -274,7 +274,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
 
     // METODO QUE ORDENA la lista de empleados por fecha de ingreso
-    private static void ordenadosPorAntigüedad() {
+    public void ordenadosPorAntigüedad() {
         String sql = "SELECT * FROM Empleados ORDER BY fechaIngreso ASC";
         Connection con = null;
         PreparedStatement ps = null;
@@ -299,7 +299,7 @@ public class EmpleadosEmpresa {
                 empleados.add(empleado);
             }
             // Imprimo los empleados ordenados por antigüedad.
-            System.out.println("\nEMPLEADOS ORDENADOS POR ANTIGÜEDAD:\n");
+            System.out.println("EMPLEADOS ORDENADOS POR ANTIGÜEDAD:\n");
             for (int i = 0; i < empleados.size(); i++) {
                 System.out.println((i + 1) + "- " + empleados.get(i).toString());
             }
@@ -313,7 +313,7 @@ public class EmpleadosEmpresa {
     
     
     // METODO QUE ORDENA la lista de empleados por salario (de mayor a menor)
-    private static void ordenadosPorSalario() {
+    public void ordenadosPorSalario() {
         String sql = "SELECT * FROM Empleados ORDER BY salario DESC";
         Connection con = null;
         PreparedStatement ps = null;
@@ -337,7 +337,7 @@ public class EmpleadosEmpresa {
                 empleados.add(empleado);
             }
             // Imprimo los empleados ordenados por salario.
-            System.out.println("\nEMPLEADOS ORDENADOS POR SALARIO:\n");
+            System.out.println("EMPLEADOS ORDENADOS POR SALARIO:\n");
             for (int i = 0; i < empleados.size(); i++) {
                 System.out.println((i + 1) + "- " + empleados.get(i).toString());
             }
@@ -350,7 +350,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO QUE ORDENA la lista de empleados por apellido
-    private static void ordenadosPorApellido() {
+    public void ordenadosPorApellido() {
         String sql = "SELECT * FROM Empleados ORDER BY apellidos ASC";
         Connection con = null;
         PreparedStatement ps = null;
@@ -374,7 +374,7 @@ public class EmpleadosEmpresa {
                 empleados.add(empleado);
             }
             // Imprimo los empleados ordenados por apellidos.
-            System.out.println("\nEMPLEADOS ORDENADOS POR APELLIDOS:\n");
+            System.out.println("EMPLEADOS ORDENADOS POR APELLIDOS:\n");
             for (int i = 0; i < empleados.size(); i++) {
                 System.out.println((i + 1) + "- " + empleados.get(i).toString());
             }
@@ -387,8 +387,9 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO para calcular el gasto total sumando los salarios de todos los empleados.
-    private static void calcularGastoTotal() {
+    public double calcularGastoTotal() {
         String sql = "SELECT SUM(salario) AS totalSalarios FROM Empleados"; // Consulta SQL para calcular la suma de los salarios
+        double gastoTotal = 0;
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -397,8 +398,8 @@ public class EmpleadosEmpresa {
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
-                double gastoTotal = rs.getDouble("totalSalarios"); // Obtiene el total de los salarios desde la base de datos
-                System.out.println("\nEl gasto total en salarios de los empleados es: " + gastoTotal);
+                gastoTotal = rs.getDouble("totalSalarios"); // Obtiene el total de los salarios desde la base de datos
+                System.out.println("El gasto total en salarios de los empleados es: " + gastoTotal);
             } else {
                 System.out.println("No fue posible calcular el gasto total de salarios.");
             }
@@ -408,10 +409,11 @@ public class EmpleadosEmpresa {
         } finally {
             cerrarConexion(con, ps, rs);
         }
+        return gastoTotal;
     } // FIN METODO
     
     //METODO para obtener la fecha
-    private static LocalDate obtenerFecha(String mensaje) {
+    public LocalDate obtenerFecha(String mensaje) {
         LocalDate fecha = null;
         do {
             System.out.println(mensaje);
@@ -428,7 +430,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     //METODO para obtener el salario
-    private static double obtenerSalario() {
+    public double obtenerSalario() {
         double salario;
         do {
             System.out.println("Introduce el salario del empleado:");
@@ -471,90 +473,4 @@ public class EmpleadosEmpresa {
             }
         }
     }
-    
-    // METODO para mostrar el menú
-    public void mostrarMenu() {
-        int opcion = 0;
-        do {     
-            try {
-            String menu = "\n               GESTIÓN DE EMPLEADOS" +
-                          "\n---------------------------------------------------------" +
-                          "\n1- Añadir Empleado" +
-                          "\n2- Eliminar Empleado" +
-                          "\n3- Actualizar Empleado" +
-                          "\n4- Buscar Empleado" +
-                          "\n5- Imprimir empleados ordenados:" +
-                          "\n6- Calcular gasto total de los empleados" +
-                          "\n7- Mostrar empleados antiguos" +
-                          "\n8- Salir" +
-                          "\n---------------------------------------------------------" +
-                          "\nSelecciona una opción: ";
-            
-            System.out.print(menu);
-            opcion = sc.nextInt();
-            sc.nextLine(); // Salto de línea
-            
-                switch (opcion) {
-                    case 1:
-                        añadirEmpleado();
-                        break;
-                    case 2:
-                        eliminarEmpleado();
-                        break;
-                    case 3:
-                        actualizarEmpleado();
-                        break;
-                    case 4:
-                        buscarEmpleado();
-                        break;
-                    case 5:
-                        String opcionOrdenamiento;
-                        do {
-                            String subMenu = "\nElige una opción:\n" +
-                                            "a) Por antigüedad\n" +
-                                            "b) Por salario\n" +
-                                            "c) Por apellido\n" +
-                                            "s) Volver al menú principal";
-                            System.out.println(subMenu);
-                            opcionOrdenamiento = sc.nextLine();
-                            
-                            // Si presiono cancelar o elijo 's', rompo el bucle y vuelvo al menú principal.
-                            if (opcionOrdenamiento == null || opcionOrdenamiento.equalsIgnoreCase("s")) {
-                                break;
-                            } // FIN IF
-                            switch (opcionOrdenamiento.toLowerCase()) {
-                                case "a":
-                                    ordenadosPorAntigüedad();
-                                    break;
-                                case "b":
-                                    ordenadosPorSalario();
-                                    break;
-                                case "c":
-                                    ordenadosPorApellido();
-                                    break;
-                                default:
-                                    System.err.println("Opción no válida. Introduce 'a', 'b', 'c' o 's' para volver.");
-                            } // FIN SWITCH
-                            
-                        } while (true); // FIN DO-WHILE
-                        break;
-                    case 6:
-                        calcularGastoTotal();
-                        break;
-                    case 7:
-                        mostrarEmpleadosAntiguos();
-                        break;
-                    case 8:
-                        System.out.println("\nSaliendo...");
-                        break;
-                    default:
-                        System.err.println("\nOpción no válida. Introduce un número entre 1 y 7.");
-                        break;
-                } // FIN SWITCH
-            } catch (InputMismatchException e) {
-                System.err.println("ERROR. Entrada no válida, inténtalo de nuevo.");
-                sc.nextLine(); // Salto de línea
-            } // FIN TRY-CATCH
-        } while (opcion != 8); // FIN DO-WHILE
-    } // FIN METODO
 } // FIN CLASE
