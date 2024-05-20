@@ -14,7 +14,7 @@ import javax.swing.JOptionPane;
  *
  * @author Ruper
  */
-public class EmpleadosEmpresa {
+public class EmpleadosEmpresa1 {
     // ArrayList de Objetos
     static ArrayList<Empleado> empleados = new ArrayList<>();
     static Scanner sc = new Scanner(System.in);
@@ -82,10 +82,11 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO para guardar un empleado en la BBDD.
-    public void guardarEmpleadoDB(Empleado empleado) {
+    public String guardarEmpleadoDB(Empleado empleado) {
         String sql = "INSERT INTO Empleados (codigo, nombre, apellidos, fechaNacimiento, fechaIngreso, puesto, salario) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
+        StringBuilder resultado = new StringBuilder();
         try {
             con = conectar();
             ps = con.prepareStatement(sql);
@@ -96,53 +97,54 @@ public class EmpleadosEmpresa {
             ps.setDate(5, Date.valueOf(empleado.getFechaIngreso()));
             ps.setString(6, empleado.getPuesto());
             ps.setDouble(7, empleado.getSalario());
-            int resultado = ps.executeUpdate();
-            if (resultado > 0) {
+            int res = ps.executeUpdate();
+            if (res > 0) {
                 empleados.add(empleado); // Lo añado a la lista.
-                System.out.println("\nEl empleado " + empleado.getNombre() + " ha sido añadido a la base de datos.");
+                resultado.append("El empleado ").append(empleado.getNombre()).append(" ha sido añadido a la base de datos.");
             }
         } catch (SQLException e) {
-            System.err.println("Error al añadir empleado: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
+            resultado.append("Error al añadir empleado: ").append(e.getMessage());
         } finally {
             cerrarConexion(con, ps, null);
         }
+        return resultado.toString();
     } // FIN METODO
     
     // METODO que elimina un empleado por nombre y apellidos
-    public void eliminarEmpleado(String codigo) {
-        String sqlInsert = "INSERT INTO EmpleadosAntiguos SELECT * FROM Empleados WHERE codigo = ?"; // Primero, intento insertar el empleado en EmpleadosAntiguos
+    public String eliminarEmpleado(String codigo) {
+        String sqlInsert = "INSERT INTO EmpleadosAntiguos SELECT * FROM Empleados WHERE codigo = ?";
         String sqlDelete = "DELETE FROM Empleados WHERE codigo = ?";
         Connection con = null;
         PreparedStatement psInsert = null;
         PreparedStatement psDelete = null;
-        
+        StringBuilder resultado = new StringBuilder();
+    
         try {
             con = conectar();
             psInsert = con.prepareStatement(sqlInsert); // Insertar en EmpleadosAntiguos
             psInsert.setString(1, codigo);
             int resultadoInsert = psInsert.executeUpdate();
-        
+    
             if (resultadoInsert > 0) {
                 psDelete = con.prepareStatement(sqlDelete); // Si la inserción fue exitosa, procedo a eliminar
                 psDelete.setString(1, codigo);
                 int resultadoDelete = psDelete.executeUpdate();
                 if (resultadoDelete > 0) {
                     empleados.removeIf(e -> e.getCodigo().equals(codigo)); // También se elimina de la lista 
-                    System.out.println("El empleado ha sido eliminado de la base de datos.");
+                    resultado.append("El empleado ha sido eliminado de la base de datos.");
                 } else {
-                    System.out.println("No se encontró ningún empleado con ese nombre para eliminar.");
+                    resultado.append("No se encontró ningún empleado con ese código para eliminar.");
                 }
             } else {
-                System.out.println("No se encontró el empleado o no se pudo insertar en EmpleadosAntiguos");
+                resultado.append("No se encontró el empleado o no se pudo insertar en EmpleadosAntiguos.");
             }
         } catch (SQLException e) {
-            System.err.println("Error al eliminar empleado: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
+            resultado.append("Error al eliminar empleado: ").append(e.getMessage());
         } finally {
             cerrarConexion(con, psInsert, null);
             cerrarConexion(con, psDelete, null); 
         }
+        return resultado.toString();
     } // FIN METODO
     
     // Método para solicitar la actualización de un empleado
@@ -168,139 +170,147 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // Método para actualizar un empleado en la base de datos
-    public void actualizarEmpleadoDB(String codigo, String nuevoPuesto, double nuevoSalario) {
+    public String actualizarEmpleadoDB(String codigo, String nuevoPuesto, double nuevoSalario) {
         String sql = "UPDATE Empleados SET puesto = ?, salario = ? WHERE codigo = ?";
         Connection con = null;
         PreparedStatement ps = null;
+        StringBuilder resultado = new StringBuilder();
+    
         try {
             con = conectar();
             ps = con.prepareStatement(sql);
             ps.setString(1, nuevoPuesto);
             ps.setDouble(2, nuevoSalario);
             ps.setString(3, codigo);
-            int resultado = ps.executeUpdate();
-            if (resultado > 0) {
+            int updateCount = ps.executeUpdate();
+            if (updateCount > 0) {
+                resultado.append("Empleado actualizado correctamente en la base de datos.");
                 // Actualizo la lista
-                empleados.forEach(empleado -> {
+                for (Empleado empleado : empleados) {
                     if (empleado.getCodigo().equalsIgnoreCase(codigo)) {
                         empleado.setPuesto(nuevoPuesto);
                         empleado.setSalario(nuevoSalario);
+                        break;
                     }
-                });
-                System.out.println("Empleado actualizado correctamente en la base de datos.");
+                }
             } else {
-                System.out.println("No se encontró ningún empleado con ese código para actualizar.");
+                resultado.append("No se encontró ningún empleado con ese código para actualizar.");
             }
         } catch (SQLException e) {
-            System.err.println("Error al actualizar empleado: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
+            resultado.append("Error al actualizar empleado: ").append(e.getMessage());
         } finally {
             cerrarConexion(con, ps, null);
         }
+        return resultado.toString();
     } // FIN METODO
     
     // METODO que busca un empleado por nombre y apellidos
-    public void buscarEmpleado(String codigo) {
+    public String buscarEmpleado(String codigo) {
         String sql = "SELECT * FROM Empleados WHERE codigo = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+        StringBuilder resultado = new StringBuilder();
+    
         try {
             con = conectar();
             ps = con.prepareStatement(sql);
             ps.setString(1, codigo);
             rs = ps.executeQuery();
             if (!rs.next()) {
-                System.err.println("No se encontró ningún empleado con ese codigo.");
+                resultado.append("No se encontró ningún empleado con ese código.");
             } else {
                 do {
                     Empleado empleado = new Empleado(
-                    rs.getString("codigo"),
-                    rs.getString("nombre"),
-                    rs.getString("apellidos"),
-                    rs.getDate("fechaNacimiento").toLocalDate(),
-                    rs.getDate("fechaIngreso").toLocalDate(),
-                    rs.getString("puesto"),
-                    rs.getDouble("salario")
+                        rs.getString("codigo"),
+                        rs.getString("nombre"),
+                        rs.getString("apellidos"),
+                        rs.getDate("fechaNacimiento").toLocalDate(),
+                        rs.getDate("fechaIngreso").toLocalDate(),
+                        rs.getString("puesto"),
+                        rs.getDouble("salario")
                     );
-                    System.out.println(empleado.toString()); // Muestra los datos del empleado encontrado
+                    resultado.append(empleado.toString()).append("\n");
                 } while (rs.next());
             }
         } catch (SQLException e) {
-            System.err.println("Error al buscar empleado: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
+            resultado.append("Error al buscar empleado: ").append(e.getMessage());
         } finally {
             cerrarConexion(con, ps, rs);
         }
+        return resultado.toString();
     } // FIN METODO
     
     // METODO que busca un empleado por nombre y apellidos
-    public void mostrarEmpleadosAntiguos() {
+    public String mostrarEmpleadosAntiguos() {
         String sql = "SELECT * FROM EmpleadosAntiguos";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+        StringBuilder resultado = new StringBuilder();
+    
         try {
             con = conectar();
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
-            System.out.println("Lista de Empleados Antiguos:");
-            while (rs.next()) {
+            if (!rs.next()) {
+                resultado.append("No se encontraron empleados antiguos.");
+            } else {
+                do {
                     Empleado empleado = new Empleado(
-                    rs.getString("codigo"),
-                    rs.getString("nombre"),
-                    rs.getString("apellidos"),
-                    rs.getDate("fechaNacimiento").toLocalDate(),
-                    rs.getDate("fechaIngreso").toLocalDate(),
-                    rs.getString("puesto"),
-                    rs.getDouble("salario")
+                        rs.getString("codigo"),
+                        rs.getString("nombre"),
+                        rs.getString("apellidos"),
+                        rs.getDate("fechaNacimiento").toLocalDate(),
+                        rs.getDate("fechaIngreso").toLocalDate(),
+                        rs.getString("puesto"),
+                        rs.getDouble("salario")
                     );
-                    System.out.println(empleado.toString()); // Muestra los datos del empleado encontrado
+                    resultado.append(empleado.toString()).append("\n");
+                } while (rs.next());
             }
         } catch (SQLException e) {
-            System.err.println("Error al buscar empleado: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
+            resultado.append("Error al buscar empleados antiguos: ").append(e.getMessage());
         } finally {
             cerrarConexion(con, ps, rs);
         }
+        return resultado.toString();
     } // FIN METODO
 
     // METODO QUE ORDENA la lista de empleados por fecha de ingreso
-    public void ordenadosPorAntigüedad() {
+    public String ordenadosPorAntigüedad() {
         String sql = "SELECT * FROM Empleados ORDER BY fechaIngreso ASC";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
-        
+        StringBuilder resultado = new StringBuilder();
+    
         try {
             con = conectar();
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
-            
-            empleados.clear(); // Limpia la lista antes de añadir elementos
-            while (rs.next()) {
-                Empleado empleado = new Empleado(
-                    rs.getString("codigo"),
-                    rs.getString("nombre"),
-                    rs.getString("apellidos"),
-                    rs.getDate("fechaNacimiento").toLocalDate(),
-                    rs.getDate("fechaIngreso").toLocalDate(),
-                    rs.getString("puesto"),
-                    rs.getDouble("salario")
-                );
-                empleados.add(empleado);
-            }
-            // Imprimo los empleados ordenados por antigüedad.
-            System.out.println("EMPLEADOS ORDENADOS POR ANTIGÜEDAD:");
-            for (int i = 0; i < empleados.size(); i++) {
-                System.out.println((i + 1) + "- " + empleados.get(i).toString());
+            if (!rs.next()) {
+                resultado.append("No se encontraron empleados.");
+            } else {
+                do {
+                    Empleado empleado = new Empleado(
+                        rs.getString("codigo"),
+                        rs.getString("nombre"),
+                        rs.getString("apellidos"),
+                        rs.getDate("fechaNacimiento").toLocalDate(),
+                        rs.getDate("fechaIngreso").toLocalDate(),
+                        rs.getString("puesto"),
+                        rs.getDouble("salario")
+                    );
+                    resultado.append(empleado.toString()).append("\n");
+                } while (rs.next());
             }
         } catch (SQLException e) {
-            System.err.println("Error al obtener empleados ordenados por antigüedad: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
+            resultado.append("Error al obtener empleados ordenados por antigüedad: ").append(e.getMessage());
         } finally {
             cerrarConexion(con, ps, rs);
         }
+        return resultado.toString();
     }  // FIN METODO
     
     

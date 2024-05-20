@@ -12,12 +12,12 @@ import javax.swing.JOptionPane;
  *
  * @author Ruper
  */
-public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
+public class IG_EmpleadosEmpresa2 extends javax.swing.JFrame {
     private EmpleadosEmpresa empresa;
     /**
      * Creates new form IG_EmpleadosEmpresa
      */
-    public IG_EmpleadosEmpresa() {
+    public IG_EmpleadosEmpresa2() {
         empresa = new EmpleadosEmpresa();
         empresa.cargarEmpleadosDB();
         initComponents();
@@ -166,8 +166,21 @@ public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
             double salario = Double.parseDouble(salarioStr);
     
             Empleado nuevoEmpleado = new Empleado(codigo, nombre, apellidos, LocalDate.parse(fechaNacimiento, DateTimeFormatter.ofPattern("dd/MM/yyyy")), LocalDate.parse(fechaIngreso, DateTimeFormatter.ofPattern("dd/MM/yyyy")), puesto, salario);
+            // Capturar la salida estándar
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(baos);
+            PrintStream old = System.out;
+            System.setOut(ps);
+
+            // Llamar al método que guarda el empleado
             empresa.guardarEmpleadoDB(nuevoEmpleado);
-            mostrarDatos();
+
+            // Restaurar la salida estándar
+            System.out.flush();
+            System.setOut(old);
+
+            // Mostrar el resultado en el JTextArea
+            ta_Display.setText(baos.toString());
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al añadir empleado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } 
@@ -372,14 +385,22 @@ public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa2.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa2.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa2.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa2.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
@@ -392,7 +413,7 @@ public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new IG_EmpleadosEmpresa().setVisible(true);
+                new IG_EmpleadosEmpresa2().setVisible(true);
             }
         });
     }
