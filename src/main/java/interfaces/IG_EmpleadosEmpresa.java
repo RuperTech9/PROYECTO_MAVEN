@@ -3,7 +3,10 @@ package interfaces;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import javax.swing.JOptionPane;
+
 
 /**
  *
@@ -152,37 +155,193 @@ public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void bt_AñadirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_AñadirActionPerformed
-        empresa.añadirEmpleado();
-        mostrarDatos();
+        try {
+            String codigo = JOptionPane.showInputDialog(this, "Introduce el código del empleado:");
+            String nombre = JOptionPane.showInputDialog(this, "Introduce el nombre del empleado:");
+            String apellidos = JOptionPane.showInputDialog(this, "Introduce los apellidos del empleado:");
+            String fechaNacimiento = JOptionPane.showInputDialog(this, "Introduce la fecha de nacimiento del empleado (DD/MM/YYYY):");
+            String fechaIngreso = JOptionPane.showInputDialog(this, "Introduce la fecha de ingreso del empleado (DD/MM/YYYY):");
+            String puesto = JOptionPane.showInputDialog(this, "Introduce el puesto del empleado:");
+            String salarioStr = JOptionPane.showInputDialog(this, "Introduce el salario del empleado:");
+            double salario = Double.parseDouble(salarioStr);
+    
+            Empleado nuevoEmpleado = new Empleado(codigo, nombre, apellidos, LocalDate.parse(fechaNacimiento, DateTimeFormatter.ofPattern("dd/MM/yyyy")), LocalDate.parse(fechaIngreso, DateTimeFormatter.ofPattern("dd/MM/yyyy")), puesto, salario);
+            empresa.guardarEmpleadoDB(nuevoEmpleado);
+            mostrarDatos();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al añadir empleado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } 
     }//GEN-LAST:event_bt_AñadirActionPerformed
 
     private void bt_EliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_EliminarActionPerformed
-       empresa.eliminarEmpleado();
-        mostrarDatos();
+        try {
+            String codigo = JOptionPane.showInputDialog(this, "Introduce el código del empleado a eliminar:");
+
+            if (codigo != null && !codigo.trim().isEmpty()) {
+                // Capturar la salida estándar
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                PrintStream ps = new PrintStream(baos);
+                PrintStream old = System.out;
+                System.setOut(ps);
+
+                // Llamar al método que elimina el empleado
+                empresa.eliminarEmpleado(codigo);
+
+                // Restaurar la salida estándar
+                System.out.flush();
+                System.setOut(old);
+
+                // Mostrar el resultado en el JTextArea
+                ta_Display.setText(baos.toString());
+            } else {
+                JOptionPane.showMessageDialog(this, "Código del empleado no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al eliminar empleado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_bt_EliminarActionPerformed
 
     private void bt_ActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_ActualizarActionPerformed
-        empresa.actualizarEmpleado();
-        mostrarDatos();
+        try {
+            String codigo = JOptionPane.showInputDialog(this, "Introduce el código del empleado a actualizar:");
+            String nuevoPuesto = JOptionPane.showInputDialog(this, "Introduce el nuevo puesto del empleado:");
+            String nuevoSalarioStr = JOptionPane.showInputDialog(this, "Introduce el nuevo salario del empleado:");
+            double nuevoSalario = Double.parseDouble(nuevoSalarioStr);
+    
+            if (codigo != null && !codigo.trim().isEmpty() && nuevoPuesto != null && !nuevoPuesto.trim().isEmpty() && nuevoSalarioStr != null && !nuevoSalarioStr.trim().isEmpty()) {
+                // Capturar la salida estándar
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                PrintStream ps = new PrintStream(baos);
+                PrintStream old = System.out;
+                System.setOut(ps);
+
+                // Llamar al método que actualiza el empleado
+                empresa.actualizarEmpleadoDB(codigo, nuevoPuesto, nuevoSalario);
+
+                // Restaurar la salida estándar
+                System.out.flush();
+                System.setOut(old);
+
+                // Obtener la salida del método actualizarEmpleadoDB
+                String resultado = baos.toString();
+
+                // Mostrar el resultado en el JTextArea
+                if (resultado.trim().isEmpty()) {
+                    ta_Display.setText("No se encontró ningún empleado con ese código para actualizar.");
+                } else {
+                    ta_Display.setText(resultado);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Todos los campos deben ser completados.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar empleado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } 
     }//GEN-LAST:event_bt_ActualizarActionPerformed
 
     private void bt_BuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_BuscarActionPerformed
-        empresa.buscarEmpleado();
-    }//GEN-LAST:event_bt_BuscarActionPerformed
+        try {
+            String codigo = JOptionPane.showInputDialog(this, "Introduce el código del empleado a buscar:");
 
+            if (codigo != null && !codigo.trim().isEmpty()) {
+                // Capturar la salida estándar
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                PrintStream ps = new PrintStream(baos);
+                PrintStream old = System.out;
+                System.setOut(ps);
+
+                // Llamar al método que busca el empleado
+                empresa.buscarEmpleado(codigo);
+
+                // Restaurar la salida estándar
+                System.out.flush();
+                System.setOut(old);
+
+                // Obtener la salida del método buscarEmpleado
+                String resultado = baos.toString();
+
+                // Mostrar el resultado en el JTextArea
+                if (resultado.trim().isEmpty()) {
+                    ta_Display.setText("No se encontró ningún empleado con ese código.");
+                } else {
+                    ta_Display.setText(resultado);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Código del empleado no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al buscar empleado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_bt_BuscarActionPerformed
+    
+    
     private void bt_OrdenadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_OrdenadosActionPerformed
-        empresa.ordenadosPorAntigüedad();
-        mostrarDatos();
+        try {
+            ta_Display.setText(""); // Limpiar el área de texto
+            // Capturar la salida estándar
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(baos);
+            PrintStream old = System.out;
+            System.setOut(ps);
+
+            // Llamar al método que imprime en consola
+            empresa.ordenadosPorAntigüedad();
+
+            // Restaurar la salida estándar
+            System.out.flush();
+            System.setOut(old);
+
+            // Mostrar el resultado en el JTextArea
+            ta_Display.setText(baos.toString());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al mostrar empleados ordenados: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_bt_OrdenadosActionPerformed
 
     private void bt_GastoTotalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_GastoTotalActionPerformed
-        empresa.calcularGastoTotal();
-        mostrarGastoTotal();
+        try {
+            ta_Display.setText(""); // Limpiar el área de texto
+            // Capturar la salida estándar
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(baos);
+            PrintStream old = System.out;
+            System.setOut(ps);
+
+            // Llamar al método que imprime en consola
+            empresa.calcularGastoTotal();
+
+            // Restaurar la salida estándar
+            System.out.flush();
+            System.setOut(old);
+
+            // Mostrar el resultado en el JTextArea
+            ta_Display.setText(baos.toString());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al calcular gasto total: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_bt_GastoTotalActionPerformed
 
     private void bt_MostrarAntiguosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_MostrarAntiguosActionPerformed
-        empresa.mostrarEmpleadosAntiguos();
-        mostrarEmpleadosAntiguos();
+        try {
+            ta_Display.setText(""); // Limpiar el área de texto
+            // Capturar la salida estándar
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(baos);
+            PrintStream old = System.out;
+            System.setOut(ps);
+
+            // Llamar al método que imprime en consola
+            empresa.mostrarEmpleadosAntiguos();
+
+            // Restaurar la salida estándar
+            System.out.flush();
+            System.setOut(old);
+
+            // Mostrar el resultado en el JTextArea
+            ta_Display.setText(baos.toString());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al mostrar empleados antiguos: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_bt_MostrarAntiguosActionPerformed
 
     private void bt_SalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_SalirActionPerformed
@@ -194,34 +353,6 @@ public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
         for (Empleado empleado : EmpleadosEmpresa.empleados) {
             ta_Display.append(empleado.toString() + "\n");
         }
-    }
-    
-    private void mostrarGastoTotal() {
-        ta_Display.setText(""); // Limpiar el área de texto
-        for (Empleado empleado : EmpleadosEmpresa.empleados) {
-            ta_Display.append(empleado.toString() + "\n");
-        }
-        double gastoTotal = empresa.calcularGastoTotal();
-        ta_Display.append("\nEl gasto total en salarios es: " + gastoTotal);
-    }
-    
-    private void mostrarEmpleadosAntiguos() {
-        ta_Display.setText(""); // Limpiar el área de texto
-        // Capturar la salida estándar
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
-        PrintStream old = System.out;
-        System.setOut(ps);
-
-        // Llamar al método que imprime en consola
-        empresa.mostrarEmpleadosAntiguos();
-
-        // Restaurar la salida estándar
-        System.out.flush();
-        System.setOut(old);
-
-        // Mostrar el resultado en el JTextArea
-        ta_Display.setText(baos.toString());
     }
     
     /**
@@ -249,6 +380,13 @@ public class IG_EmpleadosEmpresa extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(IG_EmpleadosEmpresa.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */

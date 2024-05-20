@@ -6,10 +6,8 @@ import java.util.ArrayList;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.sql.*;
-import java.util.List;
 import javax.swing.JOptionPane;
 
 /**
@@ -112,10 +110,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO que elimina un empleado por nombre y apellidos
-    public void eliminarEmpleado() {
-        System.out.println("Introduce el código del empleado a eliminar:");
-        String codigo = sc.nextLine();
-        
+    public void eliminarEmpleado(String codigo) {
         String sqlInsert = "INSERT INTO EmpleadosAntiguos SELECT * FROM Empleados WHERE codigo = ?"; // Primero, intento insertar el empleado en EmpleadosAntiguos
         String sqlDelete = "DELETE FROM Empleados WHERE codigo = ?";
         Connection con = null;
@@ -205,10 +200,7 @@ public class EmpleadosEmpresa {
     } // FIN METODO
     
     // METODO que busca un empleado por nombre y apellidos
-    public void buscarEmpleado() {
-        System.out.println("Introduce el codigo del empleado:");
-        String codigo = sc.nextLine();
-        
+    public void buscarEmpleado(String codigo) {
         String sql = "SELECT * FROM Empleados WHERE codigo = ?";
         Connection con = null;
         PreparedStatement ps = null;
