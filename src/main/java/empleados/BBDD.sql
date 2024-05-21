@@ -26,6 +26,17 @@ CREATE TABLE Empleados (
     salario DOUBLE
 );
 
+CREATE TABLE EmpleadosAntiguos (
+    codigo VARCHAR(15) PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellidos VARCHAR(100),
+    fechaNacimiento DATE,
+    fechaIngreso DATE,
+    puesto VARCHAR(50),
+    salario DOUBLE,
+    fechaBaja DATE
+);
+
 -- Inserción de Datos
 INSERT INTO Empleados VALUES
 ('jperez', 'Juan', 'Perez', '1990-01-15', '2020-06-15', 'Gerente', 50000),

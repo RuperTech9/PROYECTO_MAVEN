@@ -22,7 +22,7 @@ public class EmpleadosEmpresa {
     
     // METODOS JDBC
     private static Connection conectar() {
-        String url = "jdbc:mysql://192.168.80.152:3306/EmpleadosDB";
+        String url = "jdbc:mysql://192.168.0.27:3306/EmpleadosDB";
         String user = "alejandro";
         String password = "J0selu1s100%";
         try {
@@ -55,7 +55,7 @@ public class EmpleadosEmpresa {
             System.err.println("Error al cargar empleados: " + e.getMessage());
             System.err.println("Número del error: " + e.getErrorCode());
         }
-    }
+    } // FIN METODO
     
     // METODO para añadir un empleado.
     private static void añadirEmpleado() {
@@ -81,7 +81,7 @@ public class EmpleadosEmpresa {
         Empleado nuevoEmpleado = new Empleado(codigo, nombre, apellidos, fechaNacimiento, fechaIngreso, puesto, salario);
         
         guardarEmpleadoDB(nuevoEmpleado);    
-    }
+    } // FIN METODO
     
     // METODO para guardar un empleado en la BBDD.
     private static void guardarEmpleadoDB(Empleado empleado) {
@@ -101,7 +101,7 @@ public class EmpleadosEmpresa {
             int resultado = ps.executeUpdate();
             if (resultado > 0) {
                 empleados.add(empleado); // Lo añado a la lista.
-                System.out.println("\nEl empleado " + empleado.getNombre() + " ha sido añadido a la base de datos y a la lista.");
+                System.out.println("\nEl empleado " + empleado.getNombre() + " ha sido añadido a la base de datos.");
             }
         } catch (SQLException e) {
             System.err.println("Error al añadir empleado: " + e.getMessage());
@@ -109,34 +109,41 @@ public class EmpleadosEmpresa {
         } finally {
             cerrarConexion(con, ps, null);
         }
-    }
+    } // FIN METODO
     
     // METODO que elimina un empleado por nombre y apellidos
     private static void eliminarEmpleado() {
         System.out.println("Introduce el código del empleado a eliminar:");
         String codigo = sc.nextLine();
         
-        String sql = "DELETE FROM Empleados WHERE codigo = ?";
+        // Primero, intento insertar el empleado en EmpleadosAntiguos
+        String sqlInsert = "INSERT INTO EmpleadosAntiguos (codigo, nombre, apellidos, fechaNacimiento, fechaIngreso, puesto, salario, fechaBaja) SELECT codigo, nombre, apellidos, fechaNacimiento, fechaIngreso, puesto, salario, ? FROM Empleados WHERE codigo = ?";
+        String sqlDelete = "DELETE FROM Empleados WHERE codigo = ?";
         Connection con = null;
-        PreparedStatement ps = null;
+        PreparedStatement psInsert = null;
+        PreparedStatement psDelete = null;
         try {
             con = conectar();
-            ps = con.prepareStatement(sql);
-            ps.setString(1, codigo);
-            int result = ps.executeUpdate();
-            if (result > 0) {
-                empleados.removeIf(e -> e.getCodigo().equals(codigo));
-                System.out.println("\nEl empleado ha sido eliminado de la base de datos y de la lista.");
-            } else {
-                System.out.println("\nNo se encontró ningún empleado con ese nombre para eliminar.");
+            psInsert = con.prepareStatement(sqlInsert);
+            psInsert.setDate(1, Date.valueOf(LocalDate.now()));
+            psInsert.setString(2, codigo);
+            int resultadoInsert = psInsert.executeUpdate();
+            if (resultadoInsert > 0) {
+                psDelete = con.prepareStatement(sqlDelete);
+                psDelete.setString(1, codigo);
+                int resultadoDelete = psDelete.executeUpdate();
+                if (resultadoDelete > 0) {
+                    empleados.removeIf(e -> e.getCodigo().equals(codigo));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al eliminar empleado: " + e.getMessage());
             System.err.println("Número que representa el error: " + e.getErrorCode());
         } finally {
-            cerrarConexion(con, ps, null);
+            cerrarConexion(con, psInsert, null);
+            cerrarConexion(con, psDelete, null);
         }
-    }
+    } // FIN METODO
     
     // Método para solicitar la actualización de un empleado
     private static void actualizarEmpleado() {
@@ -158,7 +165,8 @@ public class EmpleadosEmpresa {
             }
         }
         actualizarEmpleadoDB(codigo, nuevoPuesto, nuevoSalario);
-    }
+    } // FIN METODO
+    
     // Método para actualizar un empleado en la base de datos
     private static void actualizarEmpleadoDB(String codigo, String nuevoPuesto, double nuevoSalario) {
         String sql = "UPDATE Empleados SET puesto = ?, salario = ? WHERE codigo = ?";
@@ -179,9 +187,9 @@ public class EmpleadosEmpresa {
                         empleado.setSalario(nuevoSalario);
                     }
                 });
-                System.out.println("Empleado actualizado correctamente en la base de datos y en la lista.");
+                System.out.println("Empleado actualizado correctamente en la base de datos.");
             } else {
-                System.out.println("No se encontró ningún empleado con ese nombre y apellido para actualizar.");
+                System.out.println("No se encontró ningún empleado con ese código para actualizar.");
             }
         } catch (SQLException e) {
             System.err.println("Error al actualizar empleado: " + e.getMessage());
@@ -189,7 +197,7 @@ public class EmpleadosEmpresa {
         } finally {
             cerrarConexion(con, ps, null);
         }
-    }
+    } // FIN METODO
     
     // METODO que busca un empleado por nombre y apellidos
     private static void buscarEmpleado() {
@@ -227,7 +235,39 @@ public class EmpleadosEmpresa {
         } finally {
             cerrarConexion(con, ps, rs);
         }
-    }
+    } // FIN METODO
+    
+    // METODO que busca un empleado por nombre y apellidos
+    private static void mostrarEmpleadosAntiguos() {
+        String sql = "SELECT * FROM EmpleadosAntiguos";
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            con = conectar();
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            System.out.println("\nLista de Empleados Antiguos:");
+            while (rs.next()) {
+                EmpleadoAntiguo empleadoAntiguo = new EmpleadoAntiguo(
+                    rs.getString("codigo"),
+                    rs.getString("nombre"),
+                    rs.getString("apellidos"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getDate("fechaIngreso").toLocalDate(),
+                    rs.getString("puesto"),
+                    rs.getDouble("salario"),
+                    rs.getDate("fechaBaja").toLocalDate()
+                );
+                System.out.println(empleadoAntiguo.toString());
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al buscar empleado: " + e.getMessage());
+            System.err.println("Número que representa el error: " + e.getErrorCode());
+        } finally {
+            cerrarConexion(con, ps, rs);
+        }
+    } // FIN METODO
 
     // METODO QUE ORDENA la lista de empleados por fecha de ingreso
     private static void ordenadosPorAntigüedad() {
@@ -265,7 +305,7 @@ public class EmpleadosEmpresa {
         } finally {
             cerrarConexion(con, ps, rs);
         }
-    } 
+    }  // FIN METODO
     
     
     // METODO QUE ORDENA la lista de empleados por salario (de mayor a menor)
@@ -303,7 +343,7 @@ public class EmpleadosEmpresa {
         } finally {
             cerrarConexion(con, ps, rs);
         }
-    }  // FIN METODO
+    } // FIN METODO
     
     // METODO QUE ORDENA la lista de empleados por apellido
     private static void ordenadosPorApellido() {
@@ -441,7 +481,8 @@ public class EmpleadosEmpresa {
                           "\n4- Buscar Empleado" +
                           "\n5- Imprimir empleados ordenados:" +
                           "\n6- Calcular gasto total de los empleados" +
-                          "\n7- Salir" +
+                          "\n7- Mostrar empleados antiguos" +
+                          "\n8- Salir" +
                           "\n---------------------------------------------------------" +
                           "\nSelecciona una opción: ";
             
@@ -497,6 +538,9 @@ public class EmpleadosEmpresa {
                         calcularGastoTotal();
                         break;
                     case 7:
+                        mostrarEmpleadosAntiguos();
+                        break;
+                    case 8:
                         System.out.println("\nSaliendo...");
                         break;
                     default:
@@ -507,6 +551,6 @@ public class EmpleadosEmpresa {
                 System.err.println("ERROR. Entrada no válida, inténtalo de nuevo.");
                 sc.nextLine(); // Salto de línea
             } // FIN TRY-CATCH
-        } while (opcion != 7); // FIN DO-WHILE
+        } while (opcion != 8); // FIN DO-WHILE
     } // FIN METODO
 } // FIN CLASE
