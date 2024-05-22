@@ -406,6 +406,90 @@ public class EmpleadosEmpresa {
         }
     } // FIN METODO
     
+    private static void mostrarSalarioMaximoYMinimo() {
+        String sql = "SELECT MIN(salario) AS salarioMinimo, MAX(salario) AS salarioMaximo FROM Empleados"; // Consulta SQL para obtener el salario mínimo y máximo
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            con = conectar();
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                double salarioMinimo = rs.getDouble("salarioMinimo");
+                double salarioMaximo = rs.getDouble("salarioMaximo");
+                System.out.println("\nEl salario mínimo de los empleados es: " + salarioMinimo);
+                System.out.println("El salario máximo de los empleados es: " + salarioMaximo);
+            } else {
+                System.out.println("No fue posible obtener los salarios mínimos y máximos.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener los salarios mínimos y máximos: " + e.getMessage());
+            System.err.println("Número que representa el error: " + e.getErrorCode());
+        } finally {
+            cerrarConexion(con, ps, rs);
+        }
+    } // FIN METODO
+    
+    private static void mostrarSalarioMedio() {
+        String sql = "SELECT AVG(salario) AS salarioMedio FROM Empleados"; // Consulta SQL para calcular la media de los salarios
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            con = conectar();
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                double salarioMedio = rs.getDouble("salarioMedio");
+                System.out.println("\nEl salario medio de los empleados es: " + salarioMedio);
+            } else {
+                System.out.println("No fue posible calcular el salario medio.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al calcular el salario medio: " + e.getMessage());
+            System.err.println("Número que representa el error: " + e.getErrorCode());
+        } finally {
+            cerrarConexion(con, ps, rs);
+        }
+    } // FIN METODO
+    
+    // METODO para mostrar empleados con fecha de ingreso anterior a un año determinado
+    private static void mostrarEmpleadosConIngresoAnteriorA() {
+        System.out.println("Introduce el año límite (YYYY):");
+        int anioLimite = sc.nextInt();
+        sc.nextLine(); // Salto de línea
+
+        String sql = "SELECT * FROM Empleados WHERE YEAR(fechaIngreso) < ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            con = conectar();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, anioLimite);
+            rs = ps.executeQuery();
+            System.out.println("\nEmpleados con fecha de ingreso anterior a " + anioLimite + ":\n");
+            while (rs.next()) {
+                Empleado empleado = new Empleado(
+                    rs.getString("codigo"),
+                    rs.getString("nombre"),
+                    rs.getString("apellidos"),
+                    rs.getDate("fechaNacimiento").toLocalDate(),
+                    rs.getDate("fechaIngreso").toLocalDate(),
+                    rs.getString("puesto"),
+                    rs.getDouble("salario")
+                );
+                System.out.println(empleado.toString());
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener empleados con fecha de ingreso anterior a " + anioLimite + ": " + e.getMessage());
+            System.err.println("Número que representa el error: " + e.getErrorCode());
+        } finally {
+            cerrarConexion(con, ps, rs);
+        }
+    } // FIN METODO
+    
     //METODO para obtener la fecha
     private static LocalDate obtenerFecha(String mensaje) {
         LocalDate fecha = null;
@@ -481,8 +565,11 @@ public class EmpleadosEmpresa {
                           "\n4- Buscar Empleado" +
                           "\n5- Imprimir empleados ordenados:" +
                           "\n6- Calcular gasto total de los empleados" +
-                          "\n7- Mostrar empleados antiguos" +
-                          "\n8- Salir" +
+                          "\n7- Mostrar salario máximo y mínimo" +
+                          "\n8- Mostrar salario medio" +
+                          "\n9- Mostrar empleados antiguos" +
+                          "\n10- Mostrar empleados con ingreso anterior a un año" +
+                          "\n0- Salir" +
                           "\n---------------------------------------------------------" +
                           "\nSelecciona una opción: ";
             
@@ -538,19 +625,28 @@ public class EmpleadosEmpresa {
                         calcularGastoTotal();
                         break;
                     case 7:
-                        mostrarEmpleadosAntiguos();
+                        mostrarSalarioMaximoYMinimo();
                         break;
                     case 8:
+                        mostrarSalarioMedio();
+                        break;
+                    case 9:
+                        mostrarEmpleadosAntiguos();
+                        break;
+                    case 10:
+                        mostrarEmpleadosConIngresoAnteriorA();
+                        break;
+                    case 0:
                         System.out.println("\nSaliendo...");
                         break;
                     default:
-                        System.err.println("\nOpción no válida. Introduce un número entre 1 y 7.");
+                        System.err.println("\nOpción no válida. Introduce un número entre 1 y 10.");
                         break;
                 } // FIN SWITCH
             } catch (InputMismatchException e) {
                 System.err.println("ERROR. Entrada no válida, inténtalo de nuevo.");
                 sc.nextLine(); // Salto de línea
             } // FIN TRY-CATCH
-        } while (opcion != 8); // FIN DO-WHILE
+        } while (opcion != 0); // FIN DO-WHILE
     } // FIN METODO
 } // FIN CLASE
