@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
 
 /**
  *
- * @author Ruper
+ * @author Ruper __
  */
 public class IG_EmpleadosEmpresa2 extends javax.swing.JFrame {
     private EmpleadosEmpresa empresa;
