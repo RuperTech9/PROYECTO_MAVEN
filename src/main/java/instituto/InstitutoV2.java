@@ -1,19 +1,25 @@
 
 package instituto;
 
-import java.util.ArrayList;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-import java.sql.*;
 
 /**
  *
  * @author Ruper
  */
-public class Instituto {
+public class InstitutoV2 {
     // ArrayList de Objetos
     static ArrayList<Alumno> alumnos = new ArrayList<>();
     static Scanner sc = new Scanner(System.in);
@@ -40,7 +46,7 @@ public class Instituto {
              ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 Alumno alumno = new Alumno(
-                    rs.getString("codigo"),
+                    rs.getString("dni"),
                     rs.getString("nombre"),
                     rs.getString("apellidos"),
                     rs.getDate("fechaNacimiento").toLocalDate(),
@@ -56,7 +62,7 @@ public class Instituto {
     } // FIN METODO
     
     // METODO para añadir un empleado.
-    private static void añadirAlumno() {
+    public void añadirAlumno() {
         // CODIGO EMPLEADO
         System.out.println("Introduce el dni del alumno: ");
         String dni = sc.nextLine();
@@ -68,7 +74,7 @@ public class Instituto {
         // FECHA DE NACIMIENTO
         LocalDate fechaNacimiento = obtenerFecha("Introduce la fecha de nacimiento del alumno (DD/MM/YYYY):");
         // PUESTO
-        System.out.println("Introduce el curso del alumno:");
+        System.out.println("Introduce la nota del alumno:");
         String curso = sc.nextLine();
         // SALARIO
         double nota = obtenerNota();
@@ -80,7 +86,7 @@ public class Instituto {
     } // FIN METODO
     
     // METODO para guardar un empleado en la BBDD.
-    private static void guardarAlumnoDB(Alumno alumno) {
+    public void guardarAlumnoDB(Alumno alumno) {
         String sql = "INSERT INTO Alumnos (dni, nombre, apellidos, fechaNacimiento, curso, nota) VALUES (?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
@@ -91,15 +97,15 @@ public class Instituto {
             ps.setString(2, alumno.getNombre());
             ps.setString(3, alumno.getApellidos());
             ps.setDate(4, Date.valueOf(alumno.getFechaNacimiento()));
-            ps.setString(5, alumno.getCurso());
-            ps.setDouble(6, alumno.getNota());
+            ps.setString(6, alumno.getCurso());
+            ps.setDouble(7, alumno.getNota());
             int resultado = ps.executeUpdate();
             if (resultado > 0) {
                 alumnos.add(alumno); // Lo añado a la lista.
                 System.out.println("\nEl alumno " + alumno.getNombre() + " ha sido añadido a la base de datos.");
             }
         } catch (SQLException e) {
-            System.err.println("Error al añadir empleado: " + e.getMessage());
+            System.err.println("Error al añadir alumno: " + e.getMessage());
             System.err.println("Número que representa el error: " + e.getErrorCode());
         } finally {
             cerrarConexion(con, ps, null);
@@ -107,54 +113,60 @@ public class Instituto {
     } // FIN METODO
     
     // METODO que elimina un empleado por nombre y apellidos
-    private static void eliminarAlumno() {
-        System.out.println("Introduce el dni del empleado a eliminar:");
+    public void eliminarAlumno() {
+        System.out.println("Introduce el dni del alumno a eliminar:");
         String dni = sc.nextLine();
         
-        // Primero, intento insertar el empleado en EmpleadosAntiguos
-        String sqlInsert = "INSERT INTO AlumnosAntiguos (dni, nombre, apellidos, fechaNacimiento, curso, nota, fechaBaja) SELECT dni, nombre, apellidos, fechaNacimiento, curso, nota, ? FROM Alumnos WHERE dni = ?";
+        // Primero, intento insertar el alumno en AlumnosAprobados
+        String sqlInsert = "INSERT INTO AlumnosEliminados SELECT * FROM Alumnos WHERE dni = ?";
         String sqlDelete = "DELETE FROM Alumnos WHERE dni = ?";
         Connection con = null;
         PreparedStatement psInsert = null;
         PreparedStatement psDelete = null;
+        
         try {
             con = conectar();
-            psInsert = con.prepareStatement(sqlInsert);
-            psInsert.setDate(1, Date.valueOf(LocalDate.now()));
-            psInsert.setString(2, dni);
+            psInsert = con.prepareStatement(sqlInsert); // Insertar en EmpleadosAntiguos
+            psInsert.setString(1, dni);
             int resultadoInsert = psInsert.executeUpdate();
+        
             if (resultadoInsert > 0) {
-                psDelete = con.prepareStatement(sqlDelete);
+                psDelete = con.prepareStatement(sqlDelete); // Si la inserción fue exitosa, procedo a eliminar
                 psDelete.setString(1, dni);
                 int resultadoDelete = psDelete.executeUpdate();
                 if (resultadoDelete > 0) {
                     alumnos.removeIf(e -> e.getDni().equals(dni));
+                    System.out.println("\nEl alumno ha sido eliminado de la base de datos.");
+                } else {
+                    System.out.println("\nNo se encontró ningún alumno con ese nombre para eliminar.");
                 }
+            } else {
+                System.out.println("\nNo se encontró el alumno o no se pudo insertar en AlumnosAntiguos");
             }
         } catch (SQLException e) {
             System.err.println("Error al eliminar alumno: " + e.getMessage());
             System.err.println("Número que representa el error: " + e.getErrorCode());
         } finally {
             cerrarConexion(con, psInsert, null);
-            cerrarConexion(con, psDelete, null);
+            cerrarConexion(con, psDelete, null); 
         }
     } // FIN METODO
     
     // Método para solicitar la actualización de un empleado
-    private static void actualizarAlumno() {
+    public void actualizarAlumno() {
         System.out.println("Introduce el dni del alumno a actualizar:");
         String dni = sc.nextLine();
         
         // Obtener nuevo puesto y salario
-        System.out.println("Introduce el nuevo curso del empleado:");
+        System.out.println("Introduce el nuevo curso del alumno:");
         String nuevoCurso = sc.nextLine();
-        System.out.println("Introduce el nuevo salario del empleado:");
+        System.out.println("Introduce la nueva nota del alumno:");
         double nuevaNota;
         while (true) {
             try {
                 nuevaNota = Double.parseDouble(sc.nextLine());
                 if (nuevaNota >= 0) break;
-                System.out.println("El salario debe ser un número positivo. Inténtalo de nuevo.");
+                System.out.println("La nota debe ser un número positivo. Inténtalo de nuevo.");
             } catch (NumberFormatException e) {
                 System.out.println("Por favor, introduce un número válido para el salario.");
             }
@@ -163,8 +175,8 @@ public class Instituto {
     } // FIN METODO
     
     // Método para actualizar un empleado en la base de datos
-    private static void actualizarAlumnoDB(String dni, String nuevoCurso, double nuevaNota) {
-        String sql = "UPDATE Alumnos SET curso = ?, nota = ? WHERE dni = ?";
+    public void actualizarAlumnoDB(String dni, String nuevoCurso, double nuevaNota) {
+        String sql = "UPDATE Alumnos SET puesto = ?, salario = ? WHERE dni = ?";
         Connection con = null;
         PreparedStatement ps = null;
         try {
@@ -184,7 +196,7 @@ public class Instituto {
                 });
                 System.out.println("Alumno actualizado correctamente en la base de datos.");
             } else {
-                System.out.println("No se encontró ningún alumno con ese dni para actualizar.");
+                System.out.println("No se encontró ningún alumno con ese DNI para actualizar.");
             }
         } catch (SQLException e) {
             System.err.println("Error al actualizar alumno: " + e.getMessage());
@@ -209,7 +221,7 @@ public class Instituto {
             ps.setString(1, dni);
             rs = ps.executeQuery();
             if (!rs.next()) {
-                System.err.println("No se encontró ningún empleado con ese codigo.");
+                System.err.println("No se encontró ningún alumno con ese dni.");
             } else {
                 do {
                     Alumno alumno = new Alumno(
@@ -220,7 +232,7 @@ public class Instituto {
                     rs.getString("curso"),
                     rs.getDouble("nota")
                     );
-                    System.out.println(alumno.toString()); // Muestra los datos del alumno encontrado
+                    System.out.println(alumno.toString()); // Muestra los datos del empleado encontrado
                 } while (rs.next());
             }
         } catch (SQLException e) {
@@ -232,8 +244,8 @@ public class Instituto {
     } // FIN METODO
     
     // METODO que busca un empleado por nombre y apellidos
-    private static void mostrarAlumnosAntiguos() {
-        String sql = "SELECT * FROM AlumnosAntiguos";
+    public void mostrarAlumnosAntiguos() {
+        String sql = "SELECT * FROM AlumnosEliminados";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -241,29 +253,29 @@ public class Instituto {
             con = conectar();
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
-            System.out.println("\nLista de alumnos Antiguos:");
+            System.out.println("\nLista de Alumnos Eliminados:");
             while (rs.next()) {
-                AlumnoAntiguo alumnoAntiguo = new AlumnoAntiguo(
+                    Alumno alumno = new Alumno(
                     rs.getString("dni"),
                     rs.getString("nombre"),
                     rs.getString("apellidos"),
                     rs.getDate("fechaNacimiento").toLocalDate(),
                     rs.getString("curso"),
-                    rs.getDouble("nota"),
-                    rs.getDate("fechaBaja").toLocalDate()
-                );
-                System.out.println(alumnoAntiguo.toString());
+                    rs.getDouble("nota")
+                    );
+                    System.out.println(alumno.toString()); // Muestra los datos del empleado encontrado
             }
         } catch (SQLException e) {
-            System.err.println("Error al buscar empleado: " + e.getMessage());
+            System.err.println("Error al buscar alumno: " + e.getMessage());
             System.err.println("Número que representa el error: " + e.getErrorCode());
         } finally {
             cerrarConexion(con, ps, rs);
         }
     } // FIN METODO
+    
 
     // METODO QUE ORDENA la lista de empleados por fecha de ingreso
-    private static void ordenadosPorAntigüedad() {
+    public void ordenadosPorAntigüedad() {
         String sql = "SELECT * FROM Alumnos ORDER BY fechaNacimiento ASC";
         Connection con = null;
         PreparedStatement ps = null;
@@ -301,7 +313,7 @@ public class Instituto {
     
     
     // METODO QUE ORDENA la lista de empleados por salario (de mayor a menor)
-    private static void ordenadosPorSalario() {
+    public void ordenadosPorSalario() {
         String sql = "SELECT * FROM Alumnos ORDER BY nota DESC";
         Connection con = null;
         PreparedStatement ps = null;
@@ -314,12 +326,12 @@ public class Instituto {
             alumnos.clear(); // Limpia la lista antes de añadir elementos
             while (rs.next()) {
                 Alumno alumno = new Alumno(
-                    rs.getString("codigo"),
+                    rs.getString("dni"),
                     rs.getString("nombre"),
                     rs.getString("apellidos"),
                     rs.getDate("fechaNacimiento").toLocalDate(),
                     rs.getString("curso"),
-                    rs.getDouble("dni")
+                    rs.getDouble("nota")
                 );
                 alumnos.add(alumno);
             }
@@ -337,7 +349,7 @@ public class Instituto {
     } // FIN METODO
     
     // METODO QUE ORDENA la lista de empleados por apellido
-    private static void ordenadosPorApellido() {
+    public void ordenadosPorApellido() {
         String sql = "SELECT * FROM Alumnos ORDER BY apellidos ASC";
         Connection con = null;
         PreparedStatement ps = null;
@@ -350,7 +362,7 @@ public class Instituto {
             alumnos.clear(); // Limpia la lista antes de añadir elementos
             while (rs.next()) {
                 Alumno alumno = new Alumno(
-                    rs.getString("codigo"),
+                    rs.getString("dni"),
                     rs.getString("nombre"),
                     rs.getString("apellidos"),
                     rs.getDate("fechaNacimiento").toLocalDate(),
@@ -360,12 +372,12 @@ public class Instituto {
                 alumnos.add(alumno);
             }
             // Imprimo los empleados ordenados por apellidos.
-            System.out.println("\nEMPLEADOS ORDENADOS POR APELLIDOS:\n");
+            System.out.println("\nALUMNOS ORDENADOS POR APELLIDOS:\n");
             for (int i = 0; i < alumnos.size(); i++) {
                 System.out.println((i + 1) + "- " + alumnos.get(i).toString());
             }
         } catch (SQLException e) {
-            System.err.println("Error al obtener empleados ordenados por apellidos: " + e.getMessage());
+            System.err.println("Error al obtener alumnos ordenados por apellidos: " + e.getMessage());
             System.err.println("Número que representa el error: " + e.getErrorCode());
         } finally {
             cerrarConexion(con, ps, rs);
@@ -373,8 +385,9 @@ public class Instituto {
     } // FIN METODO
     
     // METODO para calcular el gasto total sumando los salarios de todos los empleados.
-    private static void calcularNotaTotal() {
-        String sql = "SELECT SUM(nota) AS totalNotas FROM Alumnos"; // Consulta SQL para calcular la suma de los salarios
+    public double calcularMedia() {
+        String sql = "SELECT AVG(nota) AS mediaNotas FROM Alumnos"; // Consulta SQL para calcular la suma de los salarios
+        double gastoTotal = 0;
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -383,222 +396,22 @@ public class Instituto {
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
-                double gastoTotal = rs.getDouble("totalNotas"); // Obtiene el total de los salarios desde la base de datos
-                System.out.println("\nEl total en notas de los alumnos es: " + gastoTotal);
+                gastoTotal = rs.getDouble("mediaNotas"); // Obtiene el total de los salarios desde la base de datos
+                System.out.println("\nLa media de las notas de los alumnos es: " + gastoTotal);
             } else {
-                System.out.println("No fue posible calcular la nota total.");
+                System.out.println("No fue posible calcular la media de los alumnos.");
             }
         } catch (SQLException e) {
-            System.err.println("Error al calcular la nota total: " + e.getMessage());
+            System.err.println("Error al calcular la media de los alumnos: " + e.getMessage());
             System.err.println("Número que representa el error: " + e.getErrorCode());
         } finally {
             cerrarConexion(con, ps, rs);
         }
+        return gastoTotal;
     } // FIN METODO
-    
-    private static void mostrarSalarioMaximoYMinimo() {
-        String sql = "SELECT MIN(nota) AS notaMinima, MAX(nota) AS notaMaxima FROM Alumnos"; // Consulta SQL para obtener el salario mínimo y máximo
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            con = conectar();
-            ps = con.prepareStatement(sql);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                double notaMinima = rs.getDouble("notaMinima");
-                double notaMaxima = rs.getDouble("notaMaxima");
-                System.out.println("\nLa nota mínima de los alumnos es: " + notaMinima);
-                System.out.println("La nota máxima de los alumnos es: " + notaMaxima);
-            } else {
-                System.out.println("No fue posible obtener las notas mínimas y máximas.");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al obtener las notas mínimas y máximas: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
-        } finally {
-            cerrarConexion(con, ps, rs);
-        }
-    } // FIN METODO
-    
-    private static void mostrarSalarioMedio() {
-        String sql = "SELECT AVG(nota) AS notaMedia FROM Alumnos"; // Consulta SQL para calcular la media de los salarios
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            con = conectar();
-            ps = con.prepareStatement(sql);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                double notaMedia = rs.getDouble("notaMedia");
-                System.out.println("\nLa nota media de los alumnos es: " + notaMedia);
-            } else {
-                System.out.println("No fue posible calcular la nota media.");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al calcular la nota media: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
-        } finally {
-            cerrarConexion(con, ps, rs);
-        }
-    } // FIN METODO
-    
-    private static void mostrarAlumnosPorCurso() {
-        System.out.println("Introduce el curso para ver los alumnos:");
-        String curso = sc.nextLine();
-
-        String sql = "SELECT * FROM Alumnos WHERE curso = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            con = conectar();
-            ps = con.prepareStatement(sql);
-            ps.setString(1, curso);
-            rs = ps.executeQuery();
-            System.out.println("\nLista de alumnos en el curso " + curso + ":");
-            while (rs.next()) {
-                Alumno alumno = new Alumno(
-                    rs.getString("dni"),
-                    rs.getString("nombre"),
-                    rs.getString("apellidos"),
-                    rs.getDate("fechaNacimiento").toLocalDate(),
-                    rs.getString("curso"),
-                    rs.getDouble("nota")
-                );
-                System.out.println(alumno.toString());
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al buscar alumnos por curso: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
-        } finally {
-            cerrarConexion(con, ps, rs);
-        }
-    }
-    
-    private static void mostrarAlumnosPorRangoNotas() {
-        System.out.println("Introduce la nota mínima:");
-        double notaMinima = obtenerNota();
-        System.out.println("Introduce la nota máxima:");
-        double notaMaxima = obtenerNota();
-
-        String sql = "SELECT * FROM Alumnos WHERE nota BETWEEN ? AND ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            con = conectar();
-            ps = con.prepareStatement(sql);
-            ps.setDouble(1, notaMinima);
-            ps.setDouble(2, notaMaxima);
-            rs = ps.executeQuery();
-            System.out.println("\nLista de alumnos con notas entre " + notaMinima + " y " + notaMaxima + ":");
-            while (rs.next()) {
-                Alumno alumno = new Alumno(
-                    rs.getString("dni"),
-                    rs.getString("nombre"),
-                    rs.getString("apellidos"),
-                    rs.getDate("fechaNacimiento").toLocalDate(),
-                    rs.getString("curso"),
-                    rs.getDouble("nota")
-                );
-                System.out.println(alumno.toString());
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al buscar alumnos por rango de notas: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
-        } finally {
-            cerrarConexion(con, ps, rs);
-        }
-    }
-
-    private static void contarAlumnosPorCurso() {
-        String sql = "SELECT curso, COUNT(*) AS cantidad FROM Alumnos GROUP BY curso";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            con = conectar();
-            ps = con.prepareStatement(sql);
-            rs = ps.executeQuery();
-            System.out.println("\nCantidad de alumnos por curso:");
-            while (rs.next()) {
-                String curso = rs.getString("curso");
-                int cantidad = rs.getInt("cantidad");
-                System.out.println("Curso: " + curso + " - Cantidad de alumnos: " + cantidad);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al contar alumnos por curso: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
-        } finally {
-            cerrarConexion(con, ps, rs);
-        }
-    }
-    
-    private static void mostrarAlumnosPorRangoFechaNacimiento() {
-        LocalDate fechaInicio = obtenerFecha("Introduce la fecha de inicio (DD/MM/YYYY):");
-        LocalDate fechaFin = obtenerFecha("Introduce la fecha de fin (DD/MM/YYYY):");
-
-        String sql = "SELECT * FROM Alumnos WHERE fechaNacimiento BETWEEN ? AND ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            con = conectar();
-            ps = con.prepareStatement(sql);
-            ps.setDate(1, Date.valueOf(fechaInicio));
-            ps.setDate(2, Date.valueOf(fechaFin));
-            rs = ps.executeQuery();
-            System.out.println("\nLista de alumnos nacidos entre " + fechaInicio + " y " + fechaFin + ":");
-            while (rs.next()) {
-                Alumno alumno = new Alumno(
-                    rs.getString("dni"),
-                    rs.getString("nombre"),
-                    rs.getString("apellidos"),
-                    rs.getDate("fechaNacimiento").toLocalDate(),
-                    rs.getString("curso"),
-                    rs.getDouble("nota")
-                );
-                System.out.println(alumno.toString());
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al buscar alumnos por rango de fecha de nacimiento: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
-        } finally {
-            cerrarConexion(con, ps, rs);
-        }
-    }
-    
-    private static void actualizarFechaBajaAlumnoAntiguo() {
-        System.out.println("Introduce el dni del alumno antiguo a actualizar la fecha de baja:");
-        String dni = sc.nextLine();
-        LocalDate nuevaFechaBaja = obtenerFecha("Introduce la nueva fecha de baja (DD/MM/YYYY):");
-
-        String sql = "UPDATE AlumnosAntiguos SET fechaBaja = ? WHERE dni = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        try {
-            con = conectar();
-            ps = con.prepareStatement(sql);
-            ps.setDate(1, Date.valueOf(nuevaFechaBaja));
-            ps.setString(2, dni);
-            int resultado = ps.executeUpdate();
-            if (resultado > 0) {
-                System.out.println("Fecha de baja actualizada correctamente en la base de datos.");
-            } else {
-                System.out.println("No se encontró ningún alumno antiguo con ese dni para actualizar.");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar la fecha de baja del alumno antiguo: " + e.getMessage());
-            System.err.println("Número que representa el error: " + e.getErrorCode());
-        } finally {
-            cerrarConexion(con, ps, null);
-        }
-    }
     
     //METODO para obtener la fecha
-    private static LocalDate obtenerFecha(String mensaje) {
+    public LocalDate obtenerFecha(String mensaje) {
         LocalDate fecha = null;
         do {
             System.out.println(mensaje);
@@ -615,14 +428,14 @@ public class Instituto {
     } // FIN METODO
     
     //METODO para obtener el salario
-    private static double obtenerNota() {
-        double nota;
+    public double obtenerNota() {
+        double salario;
         do {
-            System.out.println("Introduce la nota del alumno:");
+            System.out.println("Introduce la nota del empleado:");
             try {
-                nota = Double.parseDouble(sc.nextLine());
-                if (nota > 0) {
-                    return nota;
+                salario = Double.parseDouble(sc.nextLine());
+                if (salario > 0) {
+                    return salario;
                 } else {
                     System.err.println("La nota debe ser mayor que 0. Inténtalo de nuevo.");
                 }
@@ -664,23 +477,16 @@ public class Instituto {
         int opcion = 0;
         do {     
             try {
-            String menu = "\n               GESTIÓN DE ALUMNOS" +
+            String menu = "\n               GESTIÓN DE EMPLEADOS" +
                           "\n---------------------------------------------------------" +
                           "\n1- Añadir Alumno" +
                           "\n2- Eliminar Alumno" +
                           "\n3- Actualizar Alumno" +
-                          "\n4- Buscar Empleado" +
+                          "\n4- Buscar Alumno" +
                           "\n5- Imprimir alumnos ordenados:" +
-                          "\n6- Calcular nota total de los alumnos" +
-                          "\n7- Mostrar nota máxima y mínima" +
-                          "\n8- Mostrar nota media" +
-                          "\n9- Mostrar alumnos antiguos" +
-                          "\n10- Mostrar Alumnos por curso" +
-                          "\n11- Mostrar por rango de notas" +
-                          "\n12- Contar Alumnos por curso" +
-                          "\n13- Mostrar por rango de fecha" +
-                          "\n14- Actualizar fecha de baja alumno antiguo" +
-                          "\n0- Salir" +
+                          "\n6- Calcular nota media de los alumnos" +
+                          "\n7- Mostrar alumnos antiguos" +
+                          "\n8- Salir" +
                           "\n---------------------------------------------------------" +
                           "\nSelecciona una opción: ";
             
@@ -733,46 +539,22 @@ public class Instituto {
                         } while (true); // FIN DO-WHILE
                         break;
                     case 6:
-                        calcularNotaTotal();
+                        calcularMedia();
                         break;
                     case 7:
-                        mostrarSalarioMaximoYMinimo();
-                        break;
-                    case 8:
-                        mostrarSalarioMedio();
-                        break;
-                    case 9:
                         mostrarAlumnosAntiguos();
                         break;
-                    case 10:
-                        mostrarAlumnosPorCurso();
-                        break;
-                    case 11:
-                        mostrarAlumnosPorRangoNotas();
-                        break;
-                    case 12:
-                        contarAlumnosPorCurso();
-                        break;
-                    case 13:
-                        mostrarAlumnosPorRangoFechaNacimiento();
-                        break;
-                    case 14:
-                        actualizarFechaBajaAlumnoAntiguo();
-                        break;
-                    case 0:
+                    case 8:
                         System.out.println("\nSaliendo...");
                         break;
                     default:
-                        System.err.println("\nOpción no válida. Introduce un número entre 0 y 9.");
+                        System.err.println("\nOpción no válida. Introduce un número entre 1 y 7.");
                         break;
                 } // FIN SWITCH
             } catch (InputMismatchException e) {
                 System.err.println("ERROR. Entrada no válida, inténtalo de nuevo.");
                 sc.nextLine(); // Salto de línea
             } // FIN TRY-CATCH
-        } while (opcion != 0); // FIN DO-WHILE
+        } while (opcion != 8); // FIN DO-WHILE
     } // FIN METODO
-    
-    
-    
 } // FIN CLASE
