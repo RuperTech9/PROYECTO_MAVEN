@@ -12,6 +12,8 @@ CREATE DATABASE IF NOT EXISTS EmpleadosDB;
 
 -- Asignar permisos al usuario creado en MYSQL
 -- GRANT ALL PRIVILEGES ON EmpleadosDB.* TO 'alejandro'@'%';
+
+-- GRANT SELECT, INSERT, UPDATE, CREATE, DROP ON EmpleadosDB.* TO 'alejandro'@'%';
 -- FLUSH PRIVILEGES;
 
 -- Creación de la Tabla Empleados
