@@ -22,7 +22,7 @@ public class EmpleadosEmpresa {
     
     // METODOS JDBC
     private static Connection conectar() {
-        String url = "jdbc:mysql://192.168.0.27:3306/EmpleadosDB";
+        String url = "jdbc:mysql://192.168.80.152:3306/EmpleadosDB";
         String user = "alejandro";
         String password = "J0selu1s100%";
         try {

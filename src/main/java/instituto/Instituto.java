@@ -21,7 +21,7 @@ public class Instituto {
     
     // METODOS JDBC
     private static Connection conectar() {
-        String url = "jdbc:mysql://192.168.0.27:3306/InstitutoDB";
+        String url = "jdbc:mysql://192.168.80.152:3306/InstitutoDB";
         String user = "alejandro";
         String password = "J0selu1s100%";
         try {
@@ -314,12 +314,12 @@ public class Instituto {
             alumnos.clear(); // Limpia la lista antes de añadir elementos
             while (rs.next()) {
                 Alumno alumno = new Alumno(
-                    rs.getString("codigo"),
+                    rs.getString("dni"),
                     rs.getString("nombre"),
                     rs.getString("apellidos"),
                     rs.getDate("fechaNacimiento").toLocalDate(),
                     rs.getString("curso"),
-                    rs.getDouble("dni")
+                    rs.getDouble("nota")
                 );
                 alumnos.add(alumno);
             }
@@ -350,7 +350,7 @@ public class Instituto {
             alumnos.clear(); // Limpia la lista antes de añadir elementos
             while (rs.next()) {
                 Alumno alumno = new Alumno(
-                    rs.getString("codigo"),
+                    rs.getString("dni"),
                     rs.getString("nombre"),
                     rs.getString("apellidos"),
                     rs.getDate("fechaNacimiento").toLocalDate(),
